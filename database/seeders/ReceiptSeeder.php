@@ -48,7 +48,7 @@ class ReceiptSeeder extends Seeder
                     'price'         => $item['price'],
                     'total'         => $item['total'],
                     'discountTotal' => $item['discountTotal'],
-                    'qty'           => (float) str_replace(',', '.', (string) $item['qty']),
+                    'qty'           => (float) str_replace(',', '', (string) $item['qty']) / 1000,
                     'roundTotal'    => $item['roundTotal'],
                     'status'        => $item['status'] ? 1 : 0,
                     'no'            => $item['no'],
@@ -68,7 +68,7 @@ class ReceiptSeeder extends Seeder
                     'receipt_id' => $r['id'],
                     'receipt'    => $d['receipt'] ? 1 : 0,
                     'total'      => $d['total'],
-                    'no'         => $d['item_no'] ?? $d['no'] ?? null,
+                    'no'         => $d['no'] ?? null,
                 ];
             }
         }

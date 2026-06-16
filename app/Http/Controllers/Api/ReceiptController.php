@@ -56,7 +56,7 @@ class ReceiptController extends Controller
                         'price'         => $item['price'],
                         'total'         => $item['total'],
                         'discountTotal' => $item['discountTotal'],
-                        'qty'           => $item['qty'],
+                        'qty'           => $item['qty']/1000,
                         'roundTotal'    => $item['roundTotal'],
                         'status'        => $item['status'] ? 1 : 0,
                         'no'            => $item['no'],
