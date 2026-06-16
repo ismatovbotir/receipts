@@ -120,6 +120,7 @@
                  this.loading = true;
                  this.result = null;
                  this.error = null;
+                 showLoadingModal('Agregatsiyalar hisoblanmoqda…', 'Bu bir necha soniya olishi mumkin');
                  try {
                      const body = { mode: this.mode };
                      if (this.mode === 'range') {
@@ -137,14 +138,15 @@
                      });
                      const data = await resp.json();
                      if (!resp.ok) {
-                         this.error = data.message || 'Request failed with status ' + resp.status;
+                         this.error = data.message || 'So\'rov muvaffaqiyatsiz tugadi, holat: ' + resp.status;
                      } else {
                          this.result = data;
                      }
                  } catch (e) {
-                     this.error = 'Network error: ' + e.message;
+                     this.error = 'Tarmoq xatosi: ' + e.message;
                  } finally {
                      this.loading = false;
+                     hideLoadingModal();
                  }
              }
          }">
@@ -222,7 +224,7 @@
             <svg x-show="!loading" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
-            <span x-text="loading ? 'Generating…' : 'Generate Aggregations'"></span>
+            <span x-text="loading ? 'Hisoblanmoqda…' : 'Agregatsiyalarni yaratish'"></span>
         </button>
 
         {{-- Success Result --}}
@@ -231,7 +233,7 @@
                 <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p class="text-sm font-semibold text-emerald-800">Aggregations generated successfully</p>
+                <p class="text-sm font-semibold text-emerald-800">Agregatsiyalar muvaffaqiyatli yaratildi</p>
             </div>
             <p x-text="result && result.message ? result.message : ''" class="text-sm text-emerald-700 mb-2"></p>
             <pre x-show="result && result.stats" x-text="result && result.stats ? JSON.stringify(result.stats, null, 2) : ''"
@@ -244,7 +246,7 @@
                 <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p class="text-sm font-semibold text-red-800">Error</p>
+                <p class="text-sm font-semibold text-red-800">Xato</p>
             </div>
             <p x-text="error" class="text-sm text-red-700 font-mono"></p>
         </div>

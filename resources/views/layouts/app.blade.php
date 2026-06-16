@@ -85,7 +85,7 @@
                 </div>
                 <div>
                     <p class="text-sm font-medium text-white">Admin</p>
-                    <p class="text-xs text-slate-400">Admininstrator</p>
+                    <p class="text-xs text-slate-400">Administrator</p>
                 </div>
             </div>
         </div>
@@ -99,5 +99,54 @@
 
     @stack('scripts')
     @livewireScripts
+
+    {{-- Global loading modal --}}
+    <div id="loading-modal"
+         style="display:none; opacity:0; transition:opacity 0.25s ease;"
+         class="fixed inset-0 z-[500] flex items-center justify-center p-4">
+
+        {{-- Backdrop --}}
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+
+        {{-- Card --}}
+        <div class="relative bg-white rounded-2xl shadow-2xl px-10 py-9 flex flex-col items-center gap-5 min-w-[300px]">
+
+            {{-- Spinner --}}
+            <div class="relative w-16 h-16">
+                <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin"></div>
+                <div class="absolute inset-[6px] rounded-full border-4 border-transparent border-t-blue-300 animate-spin"
+                     style="animation-duration:0.6s; animation-direction:reverse;"></div>
+            </div>
+
+            {{-- Bouncing dots --}}
+            <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style="animation-delay:0ms;"></span>
+                <span class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay:120ms;"></span>
+                <span class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay:240ms;"></span>
+            </div>
+
+            {{-- Text --}}
+            <div class="text-center">
+                <p id="loading-modal-title" class="text-base font-semibold text-slate-800">Yuklanmoqda…</p>
+                <p id="loading-modal-sub" class="text-sm text-slate-400 mt-1">Iltimos kuting</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function showLoadingModal(title, sub) {
+        var el = document.getElementById('loading-modal');
+        document.getElementById('loading-modal-title').textContent = title || 'Yuklanmoqda…';
+        document.getElementById('loading-modal-sub').textContent  = sub   || 'Iltimos kuting';
+        el.style.display = 'flex';
+        requestAnimationFrame(function () { el.style.opacity = '1'; });
+    }
+    function hideLoadingModal() {
+        var el = document.getElementById('loading-modal');
+        el.style.opacity = '0';
+        setTimeout(function () { el.style.display = 'none'; }, 250);
+    }
+    </script>
 </body>
 </html>

@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Calendar — ReceiptReport')
+@section('title', 'Kalendar — ReceiptReport')
 
 @section('content')
 
 {{-- Page Header --}}
 <div class="bg-white border-b border-slate-200 px-8 py-5 flex items-center justify-between">
     <div>
-        <h1 class="text-xl font-bold text-slate-800">Sales Calendar</h1>
-        <p class="text-sm text-slate-500 mt-0.5">Mark holidays, events, and unusual days to explain sales patterns</p>
+        <h1 class="text-xl font-bold text-slate-800">Savdo kalendari</h1>
+        <p class="text-sm text-slate-500 mt-0.5">Savdo naqshlarini tushuntirish uchun bayramlar, tadbirlar va noodatiy kunlarni belgilang</p>
     </div>
     {{-- Month Navigation --}}
     <div class="flex items-center gap-3">
@@ -29,14 +29,14 @@
         </a>
         <a href="{{ route('calendar', ['year' => now()->year, 'month' => now()->month]) }}"
            class="px-3 py-2 text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-slate-600">
-            Today
+            Bugun
         </a>
     </div>
 </div>
 
 {{-- Legend --}}
 <div class="bg-white border-b border-slate-200 px-8 py-3 flex items-center gap-6">
-    <span class="text-xs font-medium text-slate-500">Event types:</span>
+    <span class="text-xs font-medium text-slate-500">Tadbir turlari:</span>
     @foreach($types as $key => $meta)
         <span class="flex items-center gap-1.5 text-xs text-slate-600">
             <span class="w-2.5 h-2.5 rounded-full
@@ -49,7 +49,7 @@
             {{ $meta['label'] }}
         </span>
     @endforeach
-    <span class="ml-auto text-xs text-slate-400">Click any day to add or edit a note</span>
+    <span class="ml-auto text-xs text-slate-400">Izoh qo'shish yoki tahrirlash uchun istalgan kunni bosing</span>
 </div>
 
 {{-- Calendar --}}
@@ -57,7 +57,7 @@
 
     {{-- Day-of-week headers --}}
     <div class="grid grid-cols-7 gap-1 mb-1">
-        @foreach(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as $dow)
+        @foreach(['Du','Se','Ch','Pa','Ju','Sh','Ya'] as $dow)
             <div class="text-center text-xs font-semibold text-slate-400 py-2">{{ $dow }}</div>
         @endforeach
     </div>
@@ -104,10 +104,10 @@
                                 {{ number_format($day['revenue'], 0, '.', ' ') }}
                                 <span class="font-normal text-slate-400">UZS</span>
                             </div>
-                            <div class="text-xs text-slate-400">{{ $day['transactions'] }} receipts</div>
+                            <div class="text-xs text-slate-400">{{ $day['transactions'] }} chek</div>
                         </div>
                     @else
-                        <div class="mt-auto text-xs text-slate-300">No sales</div>
+                        <div class="mt-auto text-xs text-slate-300">Savdo yo'q</div>
                     @endif
 
                     {{-- Note title --}}
@@ -160,7 +160,7 @@
 
                 {{-- Type --}}
                 <div>
-                    <label class="block text-xs font-medium text-slate-500 mb-2">Event type</label>
+                    <label class="block text-xs font-medium text-slate-500 mb-2">Tadbir turi</label>
                     <div class="grid grid-cols-5 gap-1.5">
                         <template x-for="[key, meta] in Object.entries(typeOptions)" :key="key">
                             <button type="button"
@@ -176,37 +176,37 @@
                     <div class="grid grid-cols-5 gap-1.5 mt-2">
                         <button type="button" @click="type='holiday'"
                                 :class="type==='holiday' ? 'bg-red-500 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200'"
-                                class="py-2 rounded-lg text-xs font-medium transition-colors">Holiday</button>
+                                class="py-2 rounded-lg text-xs font-medium transition-colors">Bayram</button>
                         <button type="button" @click="type='weather'"
                                 :class="type==='weather' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'"
-                                class="py-2 rounded-lg text-xs font-medium transition-colors">Weather</button>
+                                class="py-2 rounded-lg text-xs font-medium transition-colors">Ob-havo</button>
                         <button type="button" @click="type='sport'"
                                 :class="type==='sport' ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'"
-                                class="py-2 rounded-lg text-xs font-medium transition-colors">Sports</button>
+                                class="py-2 rounded-lg text-xs font-medium transition-colors">Sport</button>
                         <button type="button" @click="type='promo'"
                                 :class="type==='promo' ? 'bg-purple-500 text-white' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'"
-                                class="py-2 rounded-lg text-xs font-medium transition-colors">Promo</button>
+                                class="py-2 rounded-lg text-xs font-medium transition-colors">Aksiya</button>
                         <button type="button" @click="type='other'"
                                 :class="type==='other' ? 'bg-slate-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                                class="py-2 rounded-lg text-xs font-medium transition-colors">Other</button>
+                                class="py-2 rounded-lg text-xs font-medium transition-colors">Boshqa</button>
                     </div>
                 </div>
 
                 {{-- Title --}}
                 <div>
-                    <label class="block text-xs font-medium text-slate-500 mb-1.5">Title <span class="text-red-400">*</span></label>
+                    <label class="block text-xs font-medium text-slate-500 mb-1.5">Sarlavha <span class="text-red-400">*</span></label>
                     <input x-model="title"
                            type="text"
-                           placeholder="e.g. Nowruz holiday, Heavy rain, Champions League final…"
+                           placeholder="masalan: Navro'z bayrami, Kuchli yomg'ir, Chempionlar ligasi finali…"
                            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
                 {{-- Notes --}}
                 <div>
-                    <label class="block text-xs font-medium text-slate-500 mb-1.5">Notes <span class="text-slate-400">(optional)</span></label>
+                    <label class="block text-xs font-medium text-slate-500 mb-1.5">Izohlar <span class="text-slate-400">(ixtiyoriy)</span></label>
                     <textarea x-model="notes"
                               rows="3"
-                              placeholder="Why was this day unusual? What caused the change in sales?"
+                              placeholder="Bu kun nima uchun noodatiy edi? Savdodagi o'zgarishga nima sabab bo'ldi?"
                               class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                 </div>
 
@@ -218,18 +218,18 @@
                         @click="deleteNote()"
                         type="button"
                         class="text-sm text-red-500 hover:text-red-700 font-medium transition-colors">
-                    Delete note
+                    Izohni o'chirish
                 </button>
                 <div class="flex gap-2 ml-auto">
                     <button @click="isOpen = false" type="button"
                             class="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-                        Cancel
+                        Bekor qilish
                     </button>
                     <button @click="save()"
                             :disabled="!title.trim()"
                             type="button"
                             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                        Save note
+                        Izohni saqlash
                     </button>
                 </div>
             </div>
@@ -262,13 +262,13 @@ function calendarModal() {
             this.notes  = day.note ? (day.note.notes || '') : '';
 
             const d = new Date(day.date + 'T12:00:00');
-            this.formattedDate = d.toLocaleDateString('en-US', {
+            this.formattedDate = d.toLocaleDateString('uz-UZ', {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
             });
 
             this.salesInfo = day.revenue
-                ? day.transactions + ' receipts · ' + new Intl.NumberFormat('ru-RU').format(day.revenue) + ' UZS'
-                : 'No sales recorded';
+                ? day.transactions + ' chek · ' + new Intl.NumberFormat('ru-RU').format(day.revenue) + ' UZS'
+                : 'Savdo qayd etilmagan';
 
             this.isOpen = true;
         },
@@ -293,7 +293,7 @@ function calendarModal() {
 
         async deleteNote() {
             if (!this.noteId) return;
-            if (!confirm('Remove this note?')) return;
+            if (!confirm('Ushbu izohni o\'chirishni istaysizmi?')) return;
             const res = await fetch('/calendar/notes/' + this.noteId, {
                 method:  'DELETE',
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content },

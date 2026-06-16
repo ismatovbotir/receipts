@@ -28,10 +28,11 @@
              }
              document.getElementById('filter_from').value = from;
              document.getElementById('filter_to').value = to;
-             document.getElementById('filter_form').submit();
+             document.getElementById('filter_form').requestSubmit();
          }
      }">
     <form id="filter_form" method="GET" action="{{ route('dashboard') }}"
+          onsubmit="showLoadingModal('Hisobot tayyorlanmoqda…', 'Ma\'lumotlar tahlil qilinmoqda')"
           class="flex flex-wrap items-end gap-4">
 
         <div class="flex flex-col gap-1">
@@ -90,33 +91,147 @@
 
     {{-- Anomaly Alert --}}
     @if($unannotated_anomalies->count() > 0)
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-4">
-            <div class="w-9 h-9 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
-                </svg>
-            </div>
-            <div class="flex-1 min-w-0">
-                <h3 class="text-sm font-semibold text-amber-800">
-                    {{ $unannotated_anomalies->count() }} ta noodatiy kun izohlarga ega emas
-                </h3>
-                <p class="text-xs text-amber-700 mt-0.5 mb-3">
-                    Bu kunlardagi savdo o'rtachadan sezilarli farq qildi. Nima bo'lganini tushuntirish uchun izoh qo'shing.
-                </p>
-                <div class="flex flex-wrap gap-2">
-                    @foreach($unannotated_anomalies as $a)
-                        @php $calY = substr($a->date, 0, 4); $calM = ltrim(substr($a->date, 5, 2), '0'); @endphp
-                        <a href="{{ route('calendar', ['year' => $calY, 'month' => $calM]) }}#{{ $a->date }}"
-                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-                               {{ $a->direction === 'high' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-blue-100 text-blue-700 border border-blue-200' }}">
-                            {{ $a->direction === 'high' ? '↑' : '↓' }}
-                            {{ \Carbon\Carbon::parse($a->date)->format('d M') }}
-                            <span class="opacity-70">— {{ $a->direction === 'high' ? 'noodatiy yuqori' : 'noodatiy past' }}</span>
-                        </a>
-                    @endforeach
+        <div x-data="anomalyNoteModal()" x-cloak>
+
+            {{-- Alert banner --}}
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-4">
+                <div class="w-9 h-9 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-semibold text-amber-800">
+                        {{ $unannotated_anomalies->count() }} ta noodatiy kun izohlarga ega emas
+                    </h3>
+                    <p class="text-xs text-amber-700 mt-0.5 mb-3">
+                        Bu kunlardagi savdo o'rtachadan sezilarli farq qildi. Kunni bosib izoh qo'shing.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($unannotated_anomalies as $a)
+                            <button type="button"
+                                    @click="open('{{ $a->date }}', '{{ $a->direction }}', {{ (int)$a->revenue }}, {{ (int)$a->transactions }})"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
+                                        {{ $a->direction === 'high'
+                                            ? 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200'
+                                            : 'bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200' }}">
+                                {{ $a->direction === 'high' ? '↑' : '↓' }}
+                                {{ \Carbon\Carbon::parse($a->date)->format('d M') }}
+                                <span class="opacity-70">— {{ $a->direction === 'high' ? 'noodatiy yuqori' : 'noodatiy past' }}</span>
+                                <svg class="w-3 h-3 ml-0.5 opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </button>
+                        @endforeach
+                    </div>
                 </div>
             </div>
+
+            {{-- Note modal --}}
+            <div x-show="isOpen"
+                 class="fixed inset-0 bg-black/50 flex items-center justify-center z-[300] p-4"
+                 @click.self="isOpen = false"
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0">
+
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md"
+                     @click.stop
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100">
+
+                    {{-- Header --}}
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-start justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-xs font-semibold"
+                                      x-text="dayOfWeek"></span>
+                                <h3 class="font-semibold text-slate-800" x-text="formattedDate"></h3>
+                            </div>
+                            <p class="text-xs font-medium" :class="direction === 'high' ? 'text-red-600' : 'text-blue-600'"
+                               x-text="direction === 'high' ? '↑ Noodatiy yuqori savdo' : '↓ Noodatiy past savdo'"></p>
+                            <p class="text-xs text-slate-400 mt-0.5" x-text="salesInfo"></p>
+                        </div>
+                        <button @click="isOpen = false" class="text-slate-400 hover:text-slate-600 transition-colors p-1 flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    {{-- Body --}}
+                    <div class="px-6 py-5 space-y-4">
+
+                        {{-- Type --}}
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-2">Tadbir turi</label>
+                            <div class="grid grid-cols-5 gap-1.5">
+                                <button type="button" @click="type='holiday'"
+                                        :class="type==='holiday' ? 'bg-red-500 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200'"
+                                        class="py-2 rounded-lg text-xs font-medium transition-colors">Bayram</button>
+                                <button type="button" @click="type='weather'"
+                                        :class="type==='weather' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'"
+                                        class="py-2 rounded-lg text-xs font-medium transition-colors">Ob-havo</button>
+                                <button type="button" @click="type='sport'"
+                                        :class="type==='sport' ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'"
+                                        class="py-2 rounded-lg text-xs font-medium transition-colors">Sport</button>
+                                <button type="button" @click="type='promo'"
+                                        :class="type==='promo' ? 'bg-purple-500 text-white' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'"
+                                        class="py-2 rounded-lg text-xs font-medium transition-colors">Aksiya</button>
+                                <button type="button" @click="type='other'"
+                                        :class="type==='other' ? 'bg-slate-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                        class="py-2 rounded-lg text-xs font-medium transition-colors">Boshqa</button>
+                            </div>
+                        </div>
+
+                        {{-- Title --}}
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1.5">
+                                Sarlavha <span class="text-red-400">*</span>
+                            </label>
+                            <input x-model="title" type="text"
+                                   placeholder="masalan: Navro'z bayrami, Kuchli yomg'ir…"
+                                   class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        {{-- Notes --}}
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1.5">
+                                Izohlar <span class="text-slate-400">(ixtiyoriy)</span>
+                            </label>
+                            <textarea x-model="notes" rows="3"
+                                      placeholder="Bu kun nima uchun noodatiy edi?"
+                                      class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                        </div>
+
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2">
+                        <button @click="isOpen = false" type="button"
+                                class="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                            Bekor qilish
+                        </button>
+                        <button @click="save()"
+                                :disabled="!title.trim() || saving"
+                                type="button"
+                                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
+                            <svg x-show="saving" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                            </svg>
+                            <span x-text="saving ? 'Saqlanmoqda…' : 'Izohni saqlash'"></span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
     @endif
 
@@ -284,6 +399,47 @@
         </div>
     </div>
 
+    {{-- Weekday + Day Notes row --}}
+    <div class="grid grid-cols-2 gap-4">
+
+        {{-- Sales by Day of Week --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-sm font-semibold text-slate-700">Hafta kunlari bo'yicha savdo</h2>
+                @if($peak_dow && $peak_dow->transactions > 0)
+                    @php
+                        $dowNames = [0 => 'Yakshanba', 1 => 'Dushanba', 2 => 'Seshanba', 3 => 'Chorshanba', 4 => 'Payshanba', 5 => 'Juma', 6 => 'Shanba'];
+                    @endphp
+                    <span class="text-xs text-slate-500">
+                        Eng yuqori: <span class="font-semibold text-blue-600">{{ $dowNames[$peak_dow->dow] }}</span>
+                        ({{ number_format($peak_dow->transactions, 0) }} tranzaksiya)
+                    </span>
+                @endif
+            </div>
+            <div class="relative h-64">
+                <canvas id="dowChart"></canvas>
+            </div>
+        </div>
+
+        {{-- Day Notes Impact --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-sm font-semibold text-slate-700">Izohlar ta'siri (o'rtacha kunlik)</h2>
+                <span class="text-xs text-slate-400">Kunlar soni ko'rsatilgan</span>
+            </div>
+            @if($note_impact->count() > 1)
+                <div class="relative h-64">
+                    <canvas id="noteImpactChart"></canvas>
+                </div>
+            @else
+                <div class="flex items-center justify-center h-64 text-slate-400 text-sm">
+                    Tahlil uchun yetarli izoh mavjud emas
+                </div>
+            @endif
+        </div>
+
+    </div>
+
     {{-- Big Receipts + Big Items row --}}
     <div class="grid grid-cols-2 gap-4">
 
@@ -372,6 +528,72 @@
 @endsection
 
 @push('scripts')
+<script>
+function anomalyNoteModal() {
+    return {
+        isOpen:    false,
+        saving:    false,
+        date:      '',
+        direction: '',
+        type:      'other',
+        title:     '',
+        notes:     '',
+        formattedDate: '',
+        dayOfWeek:     '',
+        salesInfo:     '',
+
+        open(date, direction, revenue, transactions) {
+            this.date      = date;
+            this.direction = direction;
+            this.type      = direction === 'high' ? 'promo' : 'other';
+            this.title     = '';
+            this.notes     = '';
+            this.saving    = false;
+
+            const dowNames = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+            const d = new Date(date + 'T12:00:00');
+            this.dayOfWeek     = dowNames[d.getDay()];
+            this.formattedDate = d.toLocaleDateString('ru-RU', {
+                day: 'numeric', month: 'long', year: 'numeric'
+            });
+            this.salesInfo = transactions + ' chek · ' +
+                new Intl.NumberFormat('ru-RU').format(revenue) + ' UZS';
+
+            this.isOpen = true;
+            this.$nextTick(() => {
+                const inp = this.$el.querySelector('input[type=text]');
+                if (inp) inp.focus();
+            });
+        },
+
+        async save() {
+            if (!this.title.trim() || this.saving) return;
+            this.saving = true;
+            try {
+                const res = await fetch('{{ route("calendar.notes.store") }}', {
+                    method:  'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    },
+                    body: JSON.stringify({
+                        date:  this.date,
+                        type:  this.type,
+                        title: this.title,
+                        notes: this.notes,
+                    }),
+                });
+                if (res.ok) {
+                    showLoadingModal('Yangilanmoqda…', 'Izoh saqlandi, sahifa yangilanmoqda');
+                    window.location.reload();
+                }
+            } finally {
+                this.saving = false;
+            }
+        },
+    };
+}
+</script>
 <script>
 (function () {
     const salesData       = @json($sales_over_time);
@@ -577,6 +799,113 @@
             }
         }
     });
+
+    // --- Sales by Day of Week ---
+    const dowData = @json($sales_by_dow);
+    const dowLabels = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'];
+    const dowTx      = dowData.map(r => r.transactions);
+    const dowRevenue = dowData.map(r => r.revenue);
+    const maxDowTx   = Math.max(...dowTx);
+    const dowBarColors = dowTx.map(v => v === maxDowTx && maxDowTx > 0 ? 'rgba(239,68,68,0.75)' : 'rgba(59,130,246,0.6)');
+
+    new Chart(document.getElementById('dowChart').getContext('2d'), {
+        data: {
+            labels: dowLabels,
+            datasets: [
+                {
+                    type: 'bar',
+                    label: 'Tranzaksiyalar',
+                    data: dowTx,
+                    backgroundColor: dowBarColors,
+                    borderRadius: 3,
+                    yAxisID: 'yTx',
+                },
+                {
+                    type: 'line',
+                    label: 'Tushum (UZS)',
+                    data: dowRevenue,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245,158,11,0.08)',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    tension: 0.3,
+                    yAxisID: 'yRevenue',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top', labels: { font: { size: 11 } } },
+            },
+            scales: {
+                yTx:      { type: 'linear', position: 'left',  beginAtZero: true, ticks: { font: { size: 10 }, precision: 0 } },
+                yRevenue: { type: 'linear', position: 'right', beginAtZero: true, ticks: { font: { size: 10 } }, grid: { drawOnChartArea: false } },
+                x:        { ticks: { font: { size: 10 } } }
+            }
+        }
+    });
+
+    // --- Day Notes Impact ---
+    const noteImpactData = @json($note_impact->values());
+    if (noteImpactData.length > 1 && document.getElementById('noteImpactChart')) {
+        const noteLabels = {
+            'holiday': 'Bayram', 'weather': 'Ob-havo', 'sport': 'Sport',
+            'promo': 'Aksiya', 'other': 'Boshqa', 'none': 'Izohsiz'
+        };
+        const noteColors = {
+            'holiday': 'rgba(239,68,68,0.7)', 'weather': 'rgba(59,130,246,0.7)',
+            'sport':   'rgba(16,185,129,0.7)', 'promo':   'rgba(139,92,246,0.7)',
+            'other':   'rgba(100,116,139,0.7)', 'none':   'rgba(203,213,225,0.8)'
+        };
+
+        const niLabels   = noteImpactData.map(r => (noteLabels[r.type] || r.type) + ' (' + r.days + ' kun)');
+        const niRevenue  = noteImpactData.map(r => r.avg_revenue);
+        const niTx       = noteImpactData.map(r => r.avg_transactions);
+        const niBgColors = noteImpactData.map(r => noteColors[r.type] || 'rgba(100,116,139,0.5)');
+
+        new Chart(document.getElementById('noteImpactChart').getContext('2d'), {
+            data: {
+                labels: niLabels,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'O\'rtacha tushum (UZS)',
+                        data: niRevenue,
+                        backgroundColor: niBgColors,
+                        borderRadius: 4,
+                        yAxisID: 'yRevenue',
+                    },
+                    {
+                        type: 'line',
+                        label: 'O\'rtacha tranzaksiyalar',
+                        data: niTx,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.08)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        tension: 0.2,
+                        yAxisID: 'yTx',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top', labels: { font: { size: 11 } } },
+                },
+                scales: {
+                    yRevenue: { type: 'linear', position: 'left',  beginAtZero: true, ticks: { font: { size: 10 } } },
+                    yTx:      { type: 'linear', position: 'right', beginAtZero: true, ticks: { font: { size: 10 } }, grid: { drawOnChartArea: false } },
+                    x:        { ticks: { font: { size: 10 } } }
+                }
+            }
+        });
+    }
 
 })();
 </script>

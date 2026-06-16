@@ -6,21 +6,21 @@
 
             {{-- Search --}}
             <div class="flex flex-col gap-1">
-                <label class="text-xs font-medium text-slate-500">Search</label>
+                <label class="text-xs font-medium text-slate-500">Qidirish</label>
                 <div class="relative">
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/>
                     </svg>
                     <input type="text"
                            wire:model.live.debounce.400ms="search"
-                           placeholder="Number, cashier, shop…"
+                           placeholder="Raqam, kassir, do'kon…"
                            class="pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg w-52 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
 
             {{-- Date From --}}
             <div class="flex flex-col gap-1">
-                <label class="text-xs font-medium text-slate-500">From</label>
+                <label class="text-xs font-medium text-slate-500">Dan</label>
                 <input type="date"
                        wire:model.live="dateFrom"
                        class="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -28,7 +28,7 @@
 
             {{-- Date To --}}
             <div class="flex flex-col gap-1">
-                <label class="text-xs font-medium text-slate-500">To</label>
+                <label class="text-xs font-medium text-slate-500">Gacha</label>
                 <input type="date"
                        wire:model.live="dateTo"
                        class="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -36,10 +36,10 @@
 
             {{-- Shop --}}
             <div class="flex flex-col gap-1">
-                <label class="text-xs font-medium text-slate-500">Shop</label>
+                <label class="text-xs font-medium text-slate-500">Do'kon</label>
                 <select wire:model.live="shop"
                         class="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All shops</option>
+                    <option value="">Barcha do'konlar</option>
                     @foreach($shops as $s)
                         <option value="{{ $s }}">{{ $s }}</option>
                     @endforeach
@@ -48,10 +48,10 @@
 
             {{-- Type --}}
             <div class="flex flex-col gap-1">
-                <label class="text-xs font-medium text-slate-500">Type</label>
+                <label class="text-xs font-medium text-slate-500">Tur</label>
                 <select wire:model.live="type"
                         class="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All types</option>
+                    <option value="">Barcha turlar</option>
                     @foreach($types as $t)
                         <option value="{{ $t }}">{{ $t }}</option>
                     @endforeach
@@ -60,10 +60,10 @@
 
             {{-- Status --}}
             <div class="flex flex-col gap-1">
-                <label class="text-xs font-medium text-slate-500">Status</label>
+                <label class="text-xs font-medium text-slate-500">Holat</label>
                 <select wire:model.live="status"
                         class="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All statuses</option>
+                    <option value="">Barcha holatlar</option>
                     @foreach($statuses as $st)
                         <option value="{{ $st }}">{{ $st }}</option>
                     @endforeach
@@ -74,7 +74,7 @@
             @if($search || $dateFrom || $dateTo || $shop || $type || $status)
                 <button wire:click="clearFilters"
                         class="px-4 py-2 text-sm font-medium bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors self-end">
-                    Clear
+                    Tozalash
                 </button>
             @endif
 
@@ -87,7 +87,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
         </svg>
-        <span class="text-xs text-blue-600 font-medium">Filtering…</span>
+        <span class="text-xs text-blue-600 font-medium">Filtrlanmoqda…</span>
     </div>
 
     {{-- Table --}}
@@ -98,8 +98,8 @@
 
                 <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
                     <p class="text-sm text-slate-500">
-                        Showing <span class="font-semibold text-slate-700">{{ $receipts->firstItem() }}</span>–<span class="font-semibold text-slate-700">{{ $receipts->lastItem() }}</span>
-                        of <span class="font-semibold text-slate-700">{{ number_format($receipts->total()) }}</span> receipts
+                        <span class="font-semibold text-slate-700">{{ $receipts->firstItem() }}</span>–<span class="font-semibold text-slate-700">{{ $receipts->lastItem() }}</span> ko'rsatilmoqda,
+                        jami <span class="font-semibold text-slate-700">{{ number_format($receipts->total()) }}</span> ta chek
                     </p>
                 </div>
 
@@ -108,14 +108,14 @@
                         <thead>
                             <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider">
                                 <th class="text-left px-5 py-3">#</th>
-                                <th class="text-left px-5 py-3">Receipt No.</th>
-                                <th class="text-left px-5 py-3">Date / Time</th>
-                                <th class="text-left px-5 py-3">Shop</th>
-                                <th class="text-left px-5 py-3">Cashier</th>
+                                <th class="text-left px-5 py-3">Chek raqami</th>
+                                <th class="text-left px-5 py-3">Sana / Vaqt</th>
+                                <th class="text-left px-5 py-3">Do'kon</th>
+                                <th class="text-left px-5 py-3">Kassir</th>
                                 <th class="text-left px-5 py-3">POS</th>
-                                <th class="text-left px-5 py-3">Type</th>
-                                <th class="text-left px-5 py-3">Status</th>
-                                <th class="text-right px-5 py-3">Total (UZS)</th>
+                                <th class="text-left px-5 py-3">Tur</th>
+                                <th class="text-left px-5 py-3">Holat</th>
+                                <th class="text-right px-5 py-3">Jami (UZS)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50">
@@ -164,12 +164,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
                     </div>
-                    <p class="text-slate-700 font-semibold">No receipts found</p>
-                    <p class="text-slate-400 text-sm mt-1">Try adjusting your filters</p>
+                    <p class="text-slate-700 font-semibold">Cheklar topilmadi</p>
+                    <p class="text-slate-400 text-sm mt-1">Filtrlarni o'zgartirip ko'ring</p>
                     @if($search || $dateFrom || $dateTo || $shop || $type || $status)
                         <button wire:click="clearFilters"
                                 class="mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                            Clear filters
+                            Filtrlarni tozalash
                         </button>
                     @endif
                 </div>

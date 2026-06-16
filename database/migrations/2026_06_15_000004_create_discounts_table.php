@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('discounts', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('receipt_id')->constrained()->cascadeOnDelete()->index();
+            $table->foreignUuid('receipt_id')->constrained()->cascadeOnDelete();
            // $table->string('type', 100)->index();   // loyalty, promo, manual, …
             $table->boolean('receipt')->default(true);
             $table->decimal('total', 15, 2);

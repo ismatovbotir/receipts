@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('items', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('receipt_id')->constrained()->cascadeOnDelete()->index();
+            $table->foreignUuid('receipt_id')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('code')->index();   // product barcode / PLU
             $table->string('name')->index();
             $table->string('category')->nullable()->index();
