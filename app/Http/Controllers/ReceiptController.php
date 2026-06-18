@@ -48,6 +48,12 @@ class ReceiptController extends Controller
         return view('receipts.show', compact('receipt'));
     }
 
+    public function showJson(string $id): \Illuminate\Http\JsonResponse
+    {
+        $receipt = Receipt::with(['items', 'payments', 'discounts'])->findOrFail($id);
+        return response()->json($receipt);
+    }
+
     public function exportAnalytics(Request $request): Response
     {
         $dateFrom = $request->input('dateFrom', '');
@@ -68,7 +74,7 @@ class ReceiptController extends Controller
             ->selectRaw("shop, COUNT(*) as cnt,
                 ROUND(SUM(total),0) as sum_total,
                 ROUND(MAX(total),0) as max_total,
-                ROUND(MIN(total),0) as min_total,
+                ROUND(MIN(NULLIF(total,0)),0) as min_total,
                 ROUND(AVG(total),0) as avg_total,
                 ROUND(AVG(CASE WHEN date_open IS NOT NULL AND date_close > date_open
                                THEN {$timeExpr} END), 0) as avg_sec")
@@ -80,7 +86,7 @@ class ReceiptController extends Controller
             ->selectRaw("cashier, shop, COUNT(*) as cnt,
                 ROUND(SUM(total),0) as sum_total,
                 ROUND(MAX(total),0) as max_total,
-                ROUND(MIN(total),0) as min_total,
+                ROUND(MIN(NULLIF(total,0)),0) as min_total,
                 ROUND(AVG(total),0) as avg_total,
                 ROUND(AVG(CASE WHEN date_open IS NOT NULL AND date_close > date_open
                                THEN {$timeExpr} END), 0) as avg_sec")

@@ -64,7 +64,7 @@ class ReceiptFilter extends Component
             COUNT(*) as cnt,
             ROUND(SUM(total),0) as sum_total,
             ROUND(MAX(total),0) as max_total,
-            ROUND(MIN(total),0) as min_total,
+            ROUND(MIN(NULLIF(total,0)),0) as min_total,
             ROUND(AVG(total),0) as avg_total,
             ROUND(AVG(CASE WHEN date_open IS NOT NULL AND date_close > date_open
                            THEN {$timeExpr} END), 0) as avg_sec";
@@ -73,7 +73,7 @@ class ReceiptFilter extends Component
             COUNT(*) as cnt,
             ROUND(SUM(total),0) as sum_total,
             ROUND(MAX(total),0) as max_total,
-            ROUND(MIN(total),0) as min_total,
+            ROUND(MIN(NULLIF(total,0)),0) as min_total,
             ROUND(AVG(total),0) as avg_total,
             ROUND(AVG(CASE WHEN date_open IS NOT NULL AND date_close > date_open
                            THEN {$timeExpr} END), 0) as avg_sec";
@@ -94,6 +94,7 @@ class ReceiptFilter extends Component
 
         // Global biggest and smallest receipt (with id for linking)
         $biggest  = $this->baseAnalyticsQuery()
+            ->where('total', '>', 0)
             ->orderByDesc('total')
             ->first(['id', 'number', 'total', 'cashier', 'shop', 'date_close']);
 
@@ -110,7 +111,40 @@ class ReceiptFilter extends Component
                 ->first()?->v ?? 0
         );
 
-        return compact('shopStats', 'cashierStats', 'biggest', 'smallest', 'avgSec');
+        // Per-shop biggest/smallest receipt IDs (for table row links)
+        $biggestPerShop = $this->baseAnalyticsQuery()
+            ->where('total', '>', 0)
+            ->orderByDesc('total')
+            ->get(['id', 'shop', 'total'])
+            ->unique('shop')
+            ->keyBy('shop');
+
+        $smallestPerShop = $this->baseAnalyticsQuery()
+            ->where('total', '>', 0)
+            ->orderBy('total')
+            ->get(['id', 'shop', 'total'])
+            ->unique('shop')
+            ->keyBy('shop');
+
+        // Per-cashier biggest/smallest receipt IDs
+        $biggestPerCashier = $this->baseAnalyticsQuery()
+            ->where('total', '>', 0)
+            ->orderByDesc('total')
+            ->get(['id', 'cashier', 'shop', 'total'])
+            ->unique(fn($r) => $r->cashier . '|' . $r->shop)
+            ->keyBy(fn($r) => $r->cashier . '|' . $r->shop);
+
+        $smallestPerCashier = $this->baseAnalyticsQuery()
+            ->where('total', '>', 0)
+            ->orderBy('total')
+            ->get(['id', 'cashier', 'shop', 'total'])
+            ->unique(fn($r) => $r->cashier . '|' . $r->shop)
+            ->keyBy(fn($r) => $r->cashier . '|' . $r->shop);
+
+        return compact(
+            'shopStats', 'cashierStats', 'biggest', 'smallest', 'avgSec',
+            'biggestPerShop', 'smallestPerShop', 'biggestPerCashier', 'smallestPerCashier'
+        );
     }
 
     public function render()
