@@ -44,9 +44,8 @@ class GeminiService
         );
 
         if ($response->failed()) {
-            $msg = $response->json('error.message') ?? ('HTTP ' . $response->status());
             Log::error('GeminiService error', ['status' => $response->status(), 'body' => $response->body()]);
-            return $this->err("Gemini API: {$msg}");
+            return $this->err($this->friendlyError($response->status(), $response->json()));
         }
 
         $raw = $response->json('candidates.0.content.parts.0.text');
@@ -111,6 +110,40 @@ PROMPT;
         // Keep data payload compact
         $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         return "User question: {$question}\n\nData from database:\n{$json}";
+    }
+
+    private function friendlyError(int $status, ?array $body): string
+    {
+        $raw = $body['error']['message'] ?? '';
+
+        // Quota / billing
+        if ($status === 429 || str_contains($raw, 'quota') || str_contains($raw, 'RESOURCE_EXHAUSTED')) {
+            // Extract retry seconds if present
+            preg_match('/retry in ([\d.]+)s/i', $raw, $m);
+            $retry = isset($m[1]) ? ' (' . ceil((float) $m[1]) . ' soniyadan keyin qayta urinib ko\'ring)' : '';
+            return "AI xizmati so'rovlar limitiga yetdi. Bepul kvota tugagan — billing yoqing yoki biroz kuting.{$retry}";
+        }
+
+        // Auth
+        if ($status === 400 && str_contains($raw, 'API_KEY')) {
+            return 'Noto\'g\'ri Gemini API kalit. .env faylini tekshiring.';
+        }
+        if ($status === 403) {
+            return 'Gemini API ruxsat yo\'q (403). API kalitingizni tekshiring.';
+        }
+
+        // Model not found
+        if ($status === 404) {
+            $model = config('services.gemini.model', 'gemini-2.0-flash');
+            return "Model topilmadi: {$model}. .env da GEMINI_MODEL ni to'g'ri qo'ying.";
+        }
+
+        // Server error
+        if ($status >= 500) {
+            return 'Gemini serverida xatolik (' . $status . '). Biroz kutib qayta urinib ko\'ring.';
+        }
+
+        return 'Gemini API xatosi (' . $status . '): ' . ($raw ?: 'noma\'lum xato');
     }
 
     private function err(string $msg): array

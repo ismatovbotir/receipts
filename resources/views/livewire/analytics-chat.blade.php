@@ -119,11 +119,27 @@
 
     {{-- ── Error ────────────────────────────────────────────────────────────── --}}
     @if($error)
-    <div class="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+    @php $isQuota = str_contains($error, 'limit') || str_contains($error, 'kvota') || str_contains($error, 'billing'); @endphp
+    <div class="flex items-start gap-3 rounded-xl p-4 text-sm
+                {{ $isQuota ? 'bg-amber-50 border border-amber-200 text-amber-800' : 'bg-red-50 border border-red-200 text-red-700' }}">
+        @if($isQuota)
+        <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+        </svg>
+        @else
         <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
         </svg>
-        <span>{{ $error }}</span>
+        @endif
+        <div>
+            <p>{{ $error }}</p>
+            @if($isQuota)
+            <a href="https://aistudio.google.com/apikey" target="_blank"
+               class="inline-flex items-center gap-1 mt-2 text-xs font-medium text-amber-700 hover:text-amber-900 underline underline-offset-2">
+                Google AI Studio → Billing →
+            </a>
+            @endif
+        </div>
     </div>
     @endif
 
