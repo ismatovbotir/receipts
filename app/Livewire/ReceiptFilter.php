@@ -62,6 +62,7 @@ class ReceiptFilter extends Component
 
         $selectShop = "shop,
             COUNT(*) as cnt,
+            ROUND(SUM(total),0) as sum_total,
             ROUND(MAX(total),0) as max_total,
             ROUND(MIN(total),0) as min_total,
             ROUND(AVG(total),0) as avg_total,
@@ -70,6 +71,7 @@ class ReceiptFilter extends Component
 
         $selectCashier = "cashier, shop,
             COUNT(*) as cnt,
+            ROUND(SUM(total),0) as sum_total,
             ROUND(MAX(total),0) as max_total,
             ROUND(MIN(total),0) as min_total,
             ROUND(AVG(total),0) as avg_total,
@@ -79,14 +81,14 @@ class ReceiptFilter extends Component
         $shopStats = $this->baseAnalyticsQuery()
             ->selectRaw($selectShop)
             ->groupBy('shop')
-            ->orderByDesc('cnt')
+            ->orderByDesc('sum_total')
             ->limit(20)
             ->get();
 
         $cashierStats = $this->baseAnalyticsQuery()
             ->selectRaw($selectCashier)
             ->groupBy('cashier', 'shop')
-            ->orderByDesc('cnt')
+            ->orderByDesc('sum_total')
             ->limit(20)
             ->get();
 

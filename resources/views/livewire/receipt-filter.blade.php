@@ -134,6 +134,7 @@
                     <span class="text-slate-300">·</span>
                     <span class="truncate">{{ $analytics['biggest']->shop }}</span>
                     <a href="{{ route('receipts.show', $analytics['biggest']->id) }}"
+                       target="_blank" rel="noopener noreferrer"
                        class="ml-auto flex-shrink-0 text-blue-500 hover:text-blue-700">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
@@ -156,6 +157,7 @@
                     <span class="text-slate-300">·</span>
                     <span class="truncate">{{ $analytics['smallest']->shop }}</span>
                     <a href="{{ route('receipts.show', $analytics['smallest']->id) }}"
+                       target="_blank" rel="noopener noreferrer"
                        class="ml-auto flex-shrink-0 text-blue-500 hover:text-blue-700">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
@@ -176,8 +178,8 @@
 
         </div>
 
-        {{-- Tab buttons --}}
-        <div class="flex gap-2 mb-4">
+        {{-- Tab buttons + Excel export --}}
+        <div class="flex items-center gap-2 mb-4">
             <button @click="tab = 'shops'"
                     :class="tab === 'shops'
                         ? 'bg-white shadow-sm border border-slate-200 text-slate-800 font-semibold'
@@ -192,6 +194,24 @@
                     class="px-4 py-1.5 text-sm rounded-lg transition-colors">
                 Kassirlar
             </button>
+
+            {{-- Excel download --}}
+            <button class="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg
+                           bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm"
+                    @click="
+                        const p = new URLSearchParams({
+                            dateFrom: $wire.dateFrom,
+                            dateTo:   $wire.dateTo,
+                            shop:     $wire.shop,
+                        });
+                        window.open('{{ route('receipts.analytics.export') }}?' + p.toString(), '_blank');
+                    ">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                </svg>
+                Excel
+            </button>
         </div>
 
         {{-- Shops table --}}
@@ -202,6 +222,7 @@
                         <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider">
                             <th class="text-left px-4 py-3">Do'kon</th>
                             <th class="text-right px-4 py-3">Cheklar</th>
+                            <th class="text-right px-4 py-3">Jami (UZS)</th>
                             <th class="text-right px-4 py-3">Eng katta</th>
                             <th class="text-right px-4 py-3">Eng kichik</th>
                             <th class="text-right px-4 py-3">O'rtacha</th>
@@ -213,48 +234,9 @@
                         <tr class="hover:bg-slate-50 transition-colors">
                             <td class="px-4 py-3 font-medium text-slate-800">{{ $row->shop }}</td>
                             <td class="px-4 py-3 text-right text-slate-600">{{ number_format($row->cnt) }}</td>
-                            <td class="px-4 py-3 text-right font-semibold text-emerald-600">
-                                {{ number_format($row->max_total, 0, '.', ' ') }}
+                            <td class="px-4 py-3 text-right font-semibold text-blue-700">
+                                {{ number_format($row->sum_total, 0, '.', ' ') }}
                             </td>
-                            <td class="px-4 py-3 text-right font-semibold text-red-500">
-                                {{ number_format($row->min_total, 0, '.', ' ') }}
-                            </td>
-                            <td class="px-4 py-3 text-right text-slate-700">
-                                {{ number_format($row->avg_total, 0, '.', ' ') }}
-                            </td>
-                            <td class="px-4 py-3 text-right font-medium {{ $timeColor($row->avg_sec) }}">
-                                {{ $fmtTime($row->avg_sec) }}
-                            </td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="6" class="px-4 py-8 text-center text-slate-400 text-sm">Ma'lumot topilmadi</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        {{-- Cashiers table --}}
-        <div x-show="tab === 'cashiers'" class="bg-white rounded-xl border border-slate-100 overflow-hidden shadow-sm">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                            <th class="text-left px-4 py-3">Kassir</th>
-                            <th class="text-left px-4 py-3">Do'kon</th>
-                            <th class="text-right px-4 py-3">Cheklar</th>
-                            <th class="text-right px-4 py-3">Eng katta</th>
-                            <th class="text-right px-4 py-3">Eng kichik</th>
-                            <th class="text-right px-4 py-3">O'rtacha</th>
-                            <th class="text-right px-4 py-3">O'rt. vaqt</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        @forelse($analytics['cashierStats'] as $row)
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-4 py-3 font-medium text-slate-800">{{ $row->cashier }}</td>
-                            <td class="px-4 py-3 text-slate-500 text-xs">{{ $row->shop }}</td>
-                            <td class="px-4 py-3 text-right text-slate-600">{{ number_format($row->cnt) }}</td>
                             <td class="px-4 py-3 text-right font-semibold text-emerald-600">
                                 {{ number_format($row->max_total, 0, '.', ' ') }}
                             </td>
@@ -270,6 +252,52 @@
                         </tr>
                         @empty
                         <tr><td colspan="7" class="px-4 py-8 text-center text-slate-400 text-sm">Ma'lumot topilmadi</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Cashiers table --}}
+        <div x-show="tab === 'cashiers'" class="bg-white rounded-xl border border-slate-100 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                            <th class="text-left px-4 py-3">Kassir</th>
+                            <th class="text-left px-4 py-3">Do'kon</th>
+                            <th class="text-right px-4 py-3">Cheklar</th>
+                            <th class="text-right px-4 py-3">Jami (UZS)</th>
+                            <th class="text-right px-4 py-3">Eng katta</th>
+                            <th class="text-right px-4 py-3">Eng kichik</th>
+                            <th class="text-right px-4 py-3">O'rtacha</th>
+                            <th class="text-right px-4 py-3">O'rt. vaqt</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        @forelse($analytics['cashierStats'] as $row)
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-4 py-3 font-medium text-slate-800">{{ $row->cashier }}</td>
+                            <td class="px-4 py-3 text-slate-500 text-xs">{{ $row->shop }}</td>
+                            <td class="px-4 py-3 text-right text-slate-600">{{ number_format($row->cnt) }}</td>
+                            <td class="px-4 py-3 text-right font-semibold text-blue-700">
+                                {{ number_format($row->sum_total, 0, '.', ' ') }}
+                            </td>
+                            <td class="px-4 py-3 text-right font-semibold text-emerald-600">
+                                {{ number_format($row->max_total, 0, '.', ' ') }}
+                            </td>
+                            <td class="px-4 py-3 text-right font-semibold text-red-500">
+                                {{ number_format($row->min_total, 0, '.', ' ') }}
+                            </td>
+                            <td class="px-4 py-3 text-right text-slate-700">
+                                {{ number_format($row->avg_total, 0, '.', ' ') }}
+                            </td>
+                            <td class="px-4 py-3 text-right font-medium {{ $timeColor($row->avg_sec) }}">
+                                {{ $fmtTime($row->avg_sec) }}
+                            </td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="8" class="px-4 py-8 text-center text-slate-400 text-sm">Ma'lumot topilmadi</td></tr>
                         @endforelse
                     </tbody>
                 </table>

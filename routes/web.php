@@ -16,8 +16,9 @@ Route::match(['get','post'], '/sales',    [SalesController::class,     'index'])
 Route::match(['get','post'], '/cashiers', [CashierController::class,   'index'])->name('cashiers.index');
 Route::match(['get','post'], '/products', [ProductController::class,   'index'])->name('products.index');
 
-Route::get('/receipts',      [ReceiptController::class, 'index'])->name('receipts.index');
-Route::get('/receipts/{id}', [ReceiptController::class, 'show'])->name('receipts.show');
+Route::get('/receipts',                 [ReceiptController::class, 'index'])->name('receipts.index');
+Route::get('/receipts/analytics/export',[ReceiptController::class, 'exportAnalytics'])->name('receipts.analytics.export');
+Route::get('/receipts/{id}',            [ReceiptController::class, 'show'])->name('receipts.show');
 Route::get('/aggregations',  [AggregationsController::class, 'index'])->name('aggregations');
 
 Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
