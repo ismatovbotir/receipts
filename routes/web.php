@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\AggregationsController;
@@ -18,6 +19,8 @@ Route::match(['get','post'], '/products', [ProductController::class,   'index'])
 Route::get('/receipts',      [ReceiptController::class, 'index'])->name('receipts.index');
 Route::get('/receipts/{id}', [ReceiptController::class, 'show'])->name('receipts.show');
 Route::get('/aggregations',  [AggregationsController::class, 'index'])->name('aggregations');
+
+Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
 
 Route::get('/calendar',                    [CalendarController::class, 'index'])->name('calendar');
 Route::post('/calendar/notes',             [CalendarController::class, 'store'])->name('calendar.notes.store');
